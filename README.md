@@ -12,10 +12,9 @@ __PLEASE NOTE THAT THIS SETUP USES [BITWARDEN_RS](https://github.com/dani-garcia
 ## To install ##
 __Note: to install on a PC, you will need up update the tags for the containers in docker-compose.yml with the values in the comments of that page__
 
-1. `git clone https://github.com/programus/Bitwarden_Self_Host.git`
-2. `cd Bitwarden_Self_Host`
-3. `chmod +x ./setup.sh`
-4. `sudo ./setup.sh`
+1. `git clone https://github.com/programus/bitwarden-self-host-letsencrypt.git`
+2. `cd bitwarden-self-host-letsencrypt`
+3. `sudo ./setup.sh`
 
 The setup script will guide you complete your setup. 
 
@@ -26,4 +25,10 @@ You should now be able to access your instance at https://your.domain
 
 > The `your.domain` here is the domain name you input while setting up. A public domain is NECESSARY. 
 
+
+## Some details ##
+
+By default, two directories will be created once the docker-compose is started:
+* `data`: store the database for bitwarden and the backup.
+* `proxy`: files necessary for nginx-proxy and Let's Encrypt certs generation.
 
