@@ -1,4 +1,4 @@
-# Bitwarden Self Host with LetsEncrypt
+# Bitwarden Self Host with  [Let's Encrypt](https://letsencrypt.org/)
 
 This is a forked repository from [JulianRunnels/Bitwarden_Self_Host](https://github.com/JulianRunnels/Bitwarden_Self_Host), which is using certs created by [Let's Encrypt](https://letsencrypt.org/) so modern browsers will not show an exception. Also the default docker-compose.yml is for Raspberry Pi.
 
