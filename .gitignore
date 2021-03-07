@@ -6,5 +6,7 @@
 /data/bitwarden/*
 /data/ssl/index*
 /data/ssl/serial*
+/proxy
+.env
 .gitignore
 *~*

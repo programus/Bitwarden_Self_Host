@@ -2,28 +2,65 @@ version: '3'
 
 services:
   bitwarden:
-    image: bitwardenrs/server:latest #swap tag to raspberry to run on a raspberry pi
+    image: bitwardenrs/server:latest
+    container_name: bitwarden
+    networks:
+      - bitwarden_network
+    depends_on:
+      - letsencrypt
+      - nginx-proxy
     expose:
       - "80"
     volumes:
       - ./data/bitwarden:/data
     restart: on-failure
     environment:
-      WEBSOCKET_ENABLED: 'true'
- 
-  nginx:
-    image: nginx:1.15-alpine
-    restart: always
+      - WEBSOCKET_ENABLED=true
+    # The VIRTUAL_HOST and LETSENCRYPT_HOST should use the same publically reachable domain for your bitwarden instance.
+      - VIRTUAL_HOST=${VIRTUAL_HOST}
+      - LETSENCRYPT_HOST=${LETSENCRYPT_HOST}
+    # This needs to be a real email as it will be used by let's encrypt for your cert and is used to warn you about renewals.
+      - LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+
+  nginx-proxy:
+    image: alexanderkrause/rpi-nginx-proxy:alpine       # swap image to jwilder/nginx-proxy to run on a PC
+    labels:
+      - "com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=true"
+    container_name: nginx-proxy
+    networks:
+      - bitwarden_network
     ports:
-      - "80:80"
-      - "443:443"
+      - 80:80
+      - 443:443
     volumes:
-      - ./data/nginx:/etc/nginx
-      - ./data/ssl:/etc/ssl
+      - ./proxy/conf.d:/etc/nginx/conf.d:rw
+      - ./proxy/vhost.d:/etc/nginx/vhost.d:rw
+      - ./proxy/html:/usr/share/nginx/html:rw
+      - ./proxy/certs:/etc/nginx/certs:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    restart: unless-stopped
+
+  letsencrypt:
+    image: alexanderkrause/rpi-letsencrypt-nginx-proxy-companion        # swap image to jrcs/letsencrypt-nginx-proxy-companion to run on a PC
+    container_name: letsencrypt
+    depends_on:
+      - nginx-proxy
+    networks:
+      - bitwarden_network
+    volumes:
+      - ./proxy/certs:/etc/nginx/certs:rw
+      - ./proxy/vhost.d:/etc/nginx/vhost.d:rw
+      - ./proxy/html:/usr/share/nginx/html:rw
+      - /etc/localtime:/etc/localtime:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
 
   bw_backup:
-    image: bruceforce/bw_backup:latest #swap tag to rpi3 to run on a raspberry pi
+    image: bruceforce/bw_backup:rpi3    #swap tag to latest to run on a PC
     container_name: bw_backup
+    networks:
+      - bitwarden_network
     restart: on-failure
     depends_on:
       - bitwarden
@@ -43,3 +80,5 @@ services:
       - UID=0
       - GID=0
 
+networks:
+  bitwarden_network:

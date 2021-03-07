@@ -4,20 +4,41 @@ if [[ $EUID -ne 0 ]]; then
    exit 1
 fi
 
-chmod +x get-docker.sh
-./get-docker.sh
-sudo service docker enable
-usermod -aG docker $USER
-apt install -y libffi-dev libssl-dev
-apt install -y python3 python3-pip
-pip3 install docker-compose
+export BASE_DIR=$(dirname $0)
 
-clear
-echo "Would you like to create your own personal CA and SSL certificate to enable HTTPS with bitwarden?"
+cd ${BASE_DIR}
+
+echo ""
+echo "Would you like to install docker through this script? (If you already have Docker installed, this script can cause trouble.)"
 select yn in "Yes" "No"; do
     case $yn in
-	Yes ) sudo ./create_ssl.sh && break;;
-	No ) echo "Make sure to load your own SSL certs into ./data/ssl for the Nginx container to use" && break;;
+	Yes ) ./get-docker.sh && break;;
+	No ) echo "Skipped docker installation." && break;;
+    esac
+done
+echo ""
+echo "Would you like to start docker now?"
+select yn in "Yes" "No"; do
+    case $yn in
+	Yes ) service docker enalbe && usermod -aG docker $USER && break;;
+	No ) echo "Skipped docker installation." && break;;
+    esac
+done
+echo ""
+echo "Would you like to install docker-compose?"
+select yn in "Yes" "No"; do
+    case $yn in
+	Yes ) apt install -y libffi-dev libssl-dev python3 python3-pip && pip3 install docker-compose && break;;
+	No ) echo "Skipped docker installation." && break;;
+    esac
+done
+
+echo ""
+echo "Would you like to set domain for letsencrypt?"
+select yn in "Yes" "No"; do
+    case $yn in
+	Yes ) ./create_env.sh && break;;
+	No ) echo "Make sure to set VIRTUAL_HOST, LETSENCRYPT_HOST, LETSENCRYPT_EMAIL in .env correctly before you start docker-compose. " && break;;
     esac
 done
 echo ""
@@ -29,6 +50,4 @@ select yn in "Yes" "No"; do
         No ) exit;;
     esac
 done
-
-
 
